@@ -80,6 +80,19 @@ af = {
             month:false,
             day:false
         }
+    },
+    
+    getValueRange: function(data) {
+        retval = {min:0, max:0};
+        
+        var i = data.length, datum;
+        while (i) {
+            datum = data[--i] || 0;
+            retval.min = Math.min(retval.min, datum);
+            retval.max = Math.max(retval.max, datum);
+        }
+        
+        return retval;
     }
 }
 

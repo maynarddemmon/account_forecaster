@@ -33,17 +33,9 @@ af.Account = new JS.Class('Account', myt.Node, {
     },
     
     getValueRange: function() {
-        retval = {min:0, max:0};
-        
-        var data = this.data, i = data.length, datum;
-        while (i) {
-            datum = data[--i] || 0;
-            retval.min = Math.min(retval.min, datum);
-            retval.max = Math.max(retval.max, datum);
-        }
-        
-        return retval;
+        return af.getValueRange(this.data);
     },
+    
     
     // Methods /////////////////////////////////////////////////////////////////
     setDatum: function(idx, value) {

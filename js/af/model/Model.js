@@ -134,11 +134,11 @@ af.Model = new JS.Class('Model', myt.Node, {
             j = accountData.length;
             while (j) {
                 datum = accountData[--j];
-                if (datum) colTotals[j] = (colTotals[j] || 0) +  datum;
+                if (datum) colTotals[j] = (colTotals[j] || 0) + datum;
             }
         }
         
-        console.log(colTotals);
+        this.accountList.updateTotals(colTotals);
     },
     
     // IO //
