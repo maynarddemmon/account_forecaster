@@ -37,7 +37,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         
         this.divider = new M.VerticalDivider(this, {
             x:0, height:8, minValue:24, limitToParent:24, zIndex:1,
-            value:myt.LocalStorage.getDatum('divider', 'af')
+            value:myt.LocalStorage.getDatum('divider', 'af') || 200
         }, [{
             setValue: function(v, restoreValueAlso) {
                 this.callSuper(v, restoreValueAlso);
