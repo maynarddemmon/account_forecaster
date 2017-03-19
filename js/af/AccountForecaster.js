@@ -11,13 +11,15 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
     
     // Life Cycle //////////////////////////////////////////////////////////////
     initNode: function(parent, attrs) {
-        var M = myt,
+        var self = this,
+            M = myt,
             V = M.View,
             T = M.Text,
             FIT = M.FormInputText,
             FA = M.FontAwesome,
             B = af.Button,
             self = this,
+            accountHeight = 300,
             headerHeight = 28,
             middleHeaderHeight = 28,
             leftWidth = 200;
@@ -31,7 +33,22 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         // Build UI
         var dimmer = this.dimmer = new M.Dialog(this);
         
-        var headerView = this.headerView = new V(this, {height:headerHeight, bgColor:'#dddddd'}, [M.RootForm]); // Something permanent has to be the form for the recurrence dialog
+        var accountList = this.accountList = new af.AccountList(this, {height:accountHeight});
+        
+        this.divider = new M.VerticalDivider(this, {
+            x:0, height:8, minValue:24, limitToParent:24, zIndex:1,
+            value:myt.LocalStorage.getDatum('divider', 'af')
+        }, [{
+            setValue: function(v, restoreValueAlso) {
+                this.callSuper(v, restoreValueAlso);
+                myt.LocalStorage.setDatum('divider', this.value, 'af', 100);
+                if (self.uiReady) self._updateHeight();
+            }
+        }]);
+        
+        var headerView = this.headerView = new V(this, {
+            y:accountHeight, height:headerHeight, bgColor:'#dddddd'
+        }, [M.RootForm]); // Something permanent has to be the form for the recurrence dialog
         var centerView = new V(headerView, {align:'center', y:6});
         
         // Opening Balance
@@ -113,8 +130,8 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         new M.SpacedLayout(centerView, {axis:'x', spacing:4, collapseParent:true});
         
         // Recurrences List
-        var leftMiddleHeaderView = new V(this, {
-            y:headerHeight, width:leftWidth, height:middleHeaderHeight
+        var leftMiddleHeaderView = this.leftMiddleHeaderView = new V(this, {
+            y:accountHeight + headerHeight, width:leftWidth, height:middleHeaderHeight
         });
         var addBtn = new B(leftMiddleHeaderView, {
             x:2, y:5, text:FA.makeTag(['plus']) + ' New', buttonType:'green', 
@@ -126,7 +143,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         new T(leftMiddleHeaderView, {y:8, align:'center', text:'Recurrences', fontWeight:'bold'});
         
         var leftMiddleView = this.leftMiddleView = new V(this, {
-            y:headerHeight + middleHeaderHeight, 
+            y:accountHeight + headerHeight + middleHeaderHeight, 
             width:leftWidth, overflow:'autoy'
         });
         this.recurrenceContainerView = new V(leftMiddleView, {width:leftWidth}, [{
@@ -170,11 +187,13 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         
         // Items List
         var rightMiddleHeaderView = this.rightMiddleHeaderView = new V(this, {
-            x:leftWidth + 1, y:headerHeight, height:middleHeaderHeight
+            x:leftWidth + 1, y:accountHeight + headerHeight, height:middleHeaderHeight
         });
         new T(rightMiddleHeaderView, {y:8, align:'center', text:'Balance Projection', fontWeight:'bold'});
         
-        var rightMiddleView = this.rightMiddleView = new V(this, {x:leftWidth + 1, y:headerHeight + middleHeaderHeight, overflow:'auto'});
+        var rightMiddleView = this.rightMiddleView = new V(this, {
+            x:leftWidth + 1, y:accountHeight + headerHeight + middleHeaderHeight, overflow:'auto'
+        });
         this.itemContainerView = new V(rightMiddleView, {}, [{
             initNode: function(parent, attrs) {
                 this.callSuper(parent, attrs);
@@ -261,12 +280,15 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         }]);
         
         // Pull data from local storage and populate the model with it.
-        this.model = new af.Model(this, {forecaster:this});
+        var model = this.model = new af.Model(this, {forecaster:this, accountList:accountList});
+        accountList.setModel(model);
         this.loadData(function(data) {
             self.model.deserialize(data);
-            self._dataLoaded = true;
+            self.model.dataLoaded = true;
             self.refreshItems();
             self.refreshRecurrences();
+            accountList.refresh();
+            accountList.refreshCols();
             hideSpinner();
         });
         
@@ -275,6 +297,8 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         this._updateHeight();
         
         myt.global.register('forecaster', this);
+        
+        this.uiReady = true;
         
         // Useful for debugging
         window.forecaster = this;
@@ -291,6 +315,8 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
     
     _updateWidth: function() {
         var v = this.width;
+        this.accountList.setWidth(v);
+        this.divider.setWidth(v);
         this.headerView.setWidth(v);
         v -= this.rightMiddleView.x;
         this.rightMiddleView.setWidth(v);
@@ -307,25 +333,46 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
     },
     
     _updateHeight: function() {
-        var leftMiddleView = this.leftMiddleView,
-            v = this.height - leftMiddleView.y;
-        leftMiddleView.setHeight(v);
-        this.rightMiddleView.setHeight(v);
+        var divider = this.divider,
+            lmv = this.leftMiddleView,
+            rmv = this.rightMiddleView,
+            hv = this.headerView,
+            lmhv = this.leftMiddleHeaderView,
+            rmhv = this.rightMiddleHeaderView;
+        this.accountList.setHeight(divider.y + 4);
+        
+        var y = divider.y + 4;
+        
+        hv.setY(y);
+        
+        y += hv.height;
+        
+        lmhv.setY(y);
+        rmhv.setY(y);
+        
+        y += lmhv.height;
+        
+        lmv.setY(y);
+        rmv.setY(y);
+        
+        var h = this.height - y
+        lmv.setHeight(h);
+        rmv.setHeight(h);
     },
     
     
     // Methods /////////////////////////////////////////////////////////////////
     loadData: function(callback) {
-        if (callback) callback(window.localStorage.getItem('data'));
+        if (callback) callback(myt.LocalStorage.getItem('data'));
     },
     
     saveData: function(data, callback) {
-        window.localStorage.setItem('data', data ? data : '');
+        myt.LocalStorage.setItem('data', data ? data : '');
         if (callback) callback(true);
     },
     
     refreshItems: function() {
-        if (!this._dataLoaded) return;
+        if (!this.model.dataLoaded) return;
         
         var self = this;
         if (this._refreshItemsTimerId) clearTimeout(this._refreshItemsTimerId);
@@ -338,7 +385,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
     },
     
     refreshRecurrences: function() {
-        if (!this._dataLoaded) return;
+        if (!this.model.dataLoaded) return;
         
         var recurrences = this.model.getRecurrences();
         this.recurrenceContainerView.replicate(recurrences);

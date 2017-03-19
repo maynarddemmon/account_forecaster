@@ -82,7 +82,7 @@ af.Recurrence = new JS.Class('Recurrence', myt.Node, {
     },
     
     setLabel: function(v) {
-        this.label = v;
+        this.label = v || '';
         
         if (this.inited) this.parent.save();
     },

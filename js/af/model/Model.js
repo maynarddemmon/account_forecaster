@@ -24,6 +24,8 @@ af.Model = new JS.Class('Model', myt.Node, {
         this._ready = false;
         this._idCounter = 0;
         this._data = {};
+        this._accounts = [];
+        this._accountCols = 1;
         
         this.openingBalance = 0;
         var startDate = this.startDate = new Date();
@@ -37,6 +39,10 @@ af.Model = new JS.Class('Model', myt.Node, {
     // Accessors ///////////////////////////////////////////////////////////////
     setForecaster: function(v) {
         this.forecaster = v;
+    },
+    
+    setAccountList: function(v) {
+        this.accountList = v;
     },
     
     setOpeningBalance: function (v) {
@@ -87,10 +93,35 @@ af.Model = new JS.Class('Model', myt.Node, {
         this.save();
     },
     
+    setAccountCols: function(v) {
+        if (this._accountCols !== v) {
+            this._accountCols = v;
+            
+            this.saveAccounts();
+        }
+    },
+    
     
     // Methods /////////////////////////////////////////////////////////////////
     _newId: function() {
         return ++this._idCounter;
+    },
+    
+    verifyColCount: function() {
+        var accounts = this._accounts, i = accounts.length,
+            accountData,
+            j, datum
+            maxIdx = 0;
+        while (i) {
+            accountData = accounts[--i].data;
+            j = accountData.length;
+            while (j) {
+                datum = accountData[--j];
+                if (datum) maxIdx = Math.max(maxIdx, j + 1);
+            }
+        }
+        
+        this.setAccountCols(maxIdx + 1);
     },
     
     // IO //
@@ -115,6 +146,16 @@ af.Model = new JS.Class('Model', myt.Node, {
                 datum = recurrences[i];
                 this.add(datum[1], datum[2], datum[3], datum[0]);
             }
+            
+            var accounts = data.accounts;
+            len = accounts.length;
+            i = 0;
+            for (; len > i; i++) {
+                datum = accounts[i];
+                this.addAccount(datum[1], datum[2], datum[0]);
+            }
+            
+            this.setAccountCols(data.accountCols || 1);
         }
         
         forecaster.openingBalanceView.setValue((this.openingBalance / 100).toFixed(2));
@@ -130,22 +171,52 @@ af.Model = new JS.Class('Model', myt.Node, {
             recurrence = data[key];
             recurrences.push([recurrence.recurrenceId, recurrence.type, recurrence.label, recurrence.recurrenceData]);
         }
+        
+        var accountData = [],
+            accounts = this._accounts, i = accounts.length, account;
+        while (i) {
+            account = accounts[--i];
+            accountData.push([account.id, account.label, account.data]);
+        }
+        
         return JSON.stringify({
             idCounter:this._idCounter, 
             openingBalance:this.openingBalance,
             startDate:this.startDate.getTime(),
             endDate:this.endDate.getTime(),
-            recurrences:recurrences
+            recurrences:recurrences,
+            accounts:accountData,
+            accountCols:this._accountCols
         });
     },
     
     save: function() {
         if (this._ready) {
             var forecaster = this.forecaster;
-            forecaster.saveData(this.serialize());
+            this._save();
             forecaster.refreshItems();
             forecaster.refreshRecurrences();
         }
+    },
+    
+    saveAccounts: function(noRefresh) {
+        if (this._ready) {
+            this._save();
+            if (!noRefresh) {
+                this.accountList.refresh();
+                this.accountList.refreshCols();
+            }
+        }
+    },
+    
+    /** @private */
+    _save: function() {
+        var self = this;
+        if (self._saveTimerId) clearTimeout(self._saveTimerId);
+        
+        self._saveTimerId = setTimeout(function() {
+            self.forecaster.saveData(self.serialize());
+        }, 3000);
     },
     
     // CRUD //
@@ -167,18 +238,47 @@ af.Model = new JS.Class('Model', myt.Node, {
         return this._data[recurrenceId];
     },
     
-    update: function(recurrenceId, type, label, recurrenceData) {
-        var recurrence = this.get(recurrenceId);
-        if (recurrence) recurrence.update(type, label, recurrenceData);
-        this.save();
-        return this;
-    },
-    
     remove: function(recurrenceId) {
         var recurrence = this.get(recurrenceId);
         if (recurrence) delete this._data[recurrenceId];
         this.save();
         return recurrence;
+    },
+    
+    // Accounts CRUD //
+    addAccount: function(label, data, id) {
+        if (!id) id = this._newId();
+        var account = this.getAccount(id);
+        if (account) {
+            console.warn('Account already exists.');
+            return null;
+        }
+        account = new af.Account(this, {label:label, data:data, id:id});
+        this._accounts.push(account);
+        this.saveAccounts();
+        return account;
+    },
+    
+    getAccount: function(id) {
+        var accounts = this._accounts, i = accounts.length, account;
+        while (i) {
+            account = accounts[--i];
+            if (account.id === id) return account;
+        }
+        return null;
+    },
+    
+    removeAccount: function(id) {
+        var accounts = this._accounts, i = accounts.length, account;
+        while (i) {
+            account = accounts[--i];
+            if (account.id === id) {
+                accounts.splice(i, 1);
+                this.saveAccounts();
+                return account;
+            }
+        }
+        return null;
     },
     
     // Queries //
@@ -254,5 +354,11 @@ af.Model = new JS.Class('Model', myt.Node, {
         recurrences.sort(function(a, b) {return a.recurrenceId - b.recurrenceId;});
         
         return recurrences;
+    },
+    
+    getAccounts: function() {
+        var retval = this._accounts;
+        retval.sort(function(a, b) {return a.id - b.id;});
+        return retval;
     }
 });

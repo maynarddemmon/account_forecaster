@@ -134,7 +134,7 @@ af.Button = new JS.Class('af.Button', myt.SimpleIconTextButton, {
     }
 })
 
-af.ItemMixin = new JS.Module('ItemMixin', {
+af.BaseItemMixin = new JS.Module('BaseItemMixin', {
     include:[myt.Reusable, myt.TooltipMixin],
     
     
@@ -144,6 +144,29 @@ af.ItemMixin = new JS.Module('ItemMixin', {
         if (v > 0) this.callSuper(v, supressEvent);
     },
     
+    
+    // Methods /////////////////////////////////////////////////////////////////
+    drawHoverState: function() {
+        this.callSuper();
+        if (this.highlighted) this.setBgColor('#ddffdd');
+    },
+    
+    drawActiveState: function() {
+        this.callSuper();
+        if (this.highlighted) this.setBgColor('#ddeedd');
+    },
+    
+    drawReadyState: function() {
+        this.callSuper();
+        if (this.highlighted) this.setBgColor('#ddf8dd');
+    }
+})
+
+af.ItemMixin = new JS.Module('ItemMixin', {
+    include:[af.BaseItemMixin],
+    
+    
+    // Accessors ///////////////////////////////////////////////////////////////
     /** @overrides */
     setMouseOver: function(v) {
         this.callSuper(v);
@@ -161,20 +184,5 @@ af.ItemMixin = new JS.Module('ItemMixin', {
     highlight: function(highlighted) {
         this.highlighted = highlighted;
         this.updateUI();
-    },
-    
-    drawHoverState: function() {
-        this.callSuper();
-        if (this.highlighted) this.setBgColor('#ddffdd');
-    },
-    
-    drawActiveState: function() {
-        this.callSuper();
-        if (this.highlighted) this.setBgColor('#ddeedd');
-    },
-    
-    drawReadyState: function() {
-        this.callSuper();
-        if (this.highlighted) this.setBgColor('#ddf8dd');
     }
 })
