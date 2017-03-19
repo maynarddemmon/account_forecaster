@@ -9,8 +9,7 @@
 af.WeeklyRecurrence = new JS.Class('WeeklyRecurrence', af.Recurrence, {
     // Accessors ///////////////////////////////////////////////////////////////
     setRecurrenceData: function(v) {
-        var R = af.Recurrence;
-        R.cleanCurrency(v, 'amount');
+        af.cleanCurrency(v, 'amount');
         
         this.callSuper();
     },
@@ -67,7 +66,7 @@ af.WeeklyRecurrence = new JS.Class('WeeklyRecurrence', af.Recurrence, {
         var recData = data.recurrenceData;
         
         // Convert amount from dollars and cents to cents
-        recData.amount = af.Recurrence.convertToCents(recData.amount);
+        recData.amount = af.convertToCents(recData.amount);
         
         // Convert back to numbers
         recData.dayOfWeek = Number(recData.dayOfWeek);

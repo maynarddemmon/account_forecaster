@@ -9,9 +9,8 @@
 af.OneTimeRecurrence = new JS.Class('OneTimeRecurrence', af.Recurrence, {
     // Accessors ///////////////////////////////////////////////////////////////
     setRecurrenceData: function(v) {
-        var R = af.Recurrence;
-        R.cleanDateProperty(v, 'date');
-        R.cleanCurrency(v, 'amount');
+        af.cleanDateProperty(v, 'date');
+        af.cleanCurrency(v, 'amount');
         
         this.callSuper();
     },
@@ -50,7 +49,7 @@ af.OneTimeRecurrence = new JS.Class('OneTimeRecurrence', af.Recurrence, {
         var recData = data.recurrenceData;
         
         // Convert amount from dollars and cents to cents
-        recData.amount = af.Recurrence.convertToCents(recData.amount);
+        recData.amount = af.convertToCents(recData.amount);
         
         // year/month/day/hour/minute/second into time
         var date = new Date(recData.year, recData.month, recData.day, recData.hour, recData.minute, recData.second);

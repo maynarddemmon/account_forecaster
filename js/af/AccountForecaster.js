@@ -18,7 +18,6 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
             FIT = M.FormInputText,
             FA = M.FontAwesome,
             B = af.Button,
-            self = this,
             accountHeight = 300,
             headerHeight = 28,
             middleHeaderHeight = 28,
@@ -37,7 +36,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         
         this.divider = new M.VerticalDivider(this, {
             x:0, height:8, minValue:72, limitToParent:55, zIndex:1,
-            value:myt.LocalStorage.getDatum('divider', 'af') || 200
+            value:myt.LocalStorage.getDatum('divider', 'af') || accountHeight - 4
         }, [{
             setValue: function(v, restoreValueAlso) {
                 this.callSuper(v, restoreValueAlso);
@@ -284,8 +283,6 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         accountList.setModel(model);
         this.loadData(function(data) {
             model.deserialize(data);
-            model.sumCols();
-            model.dataLoaded = true;
             self.refreshItems();
             self.refreshRecurrences();
             accountList.refresh();
@@ -297,12 +294,9 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         this._updateWidth();
         this._updateHeight();
         
-        myt.global.register('forecaster', this);
+        M.global.register('forecaster', this);
         
         this.uiReady = true;
-        
-        // Useful for debugging
-        window.forecaster = this;
     },
     
     
@@ -334,22 +328,20 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
     },
     
     _updateHeight: function() {
-        var divider = this.divider,
-            lmv = this.leftMiddleView,
+        var lmv = this.leftMiddleView,
             rmv = this.rightMiddleView,
             hv = this.headerView,
             lmhv = this.leftMiddleHeaderView,
-            rmhv = this.rightMiddleHeaderView;
-        this.accountList.setHeight(divider.y + 4);
+            y = this.divider.y + 4;
         
-        var y = divider.y + 4;
+        this.accountList.setHeight(y);
         
         hv.setY(y);
         
         y += hv.height;
         
         lmhv.setY(y);
-        rmhv.setY(y);
+        this.rightMiddleHeaderView.setY(y);
         
         y += lmhv.height;
         
@@ -435,9 +427,8 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
     },
     
     _showRecurrenceDialog: function(recurrence) {
-        var isNew = recurrence == null;
-        
-        var self = this,
+        var isNew = recurrence == null,
+            self = this,
             form = this.headerView,
             M = myt, 
             V = M.View, 

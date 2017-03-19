@@ -5,26 +5,22 @@
     
     Attributes:
         None
+    
+    Private Attributes:
+        _labelView
 */
 af.DividerView = new JS.Class('DividerView', myt.View, {
     include:[myt.Reusable],
     
     
-    // Class Methods and Attributes ////////////////////////////////////////////
-    extend: {
-        HEIGHT:15
-    },
-    
-    
     // Life Cycle //////////////////////////////////////////////////////////////
     /** @overrides */
     initNode: function(parent, attrs) {
-        var DV = af.DividerView;
-        attrs.height = DV.HEIGHT;
+        attrs.height = af.DIVIDER_HEIGHT;
         
         this.callSuper(parent, attrs);
         
-        this.labelView = new myt.Text(this, {x:5, y:1, width:200, fontWeight:'bold', fontSize:'10px'});
+        this._labelView = new myt.Text(this, {x:5, y:1, width:200, fontWeight:'bold', fontSize:'10px'});
     },
     
     
@@ -39,21 +35,25 @@ af.DividerView = new JS.Class('DividerView', myt.View, {
     update: function(data, width) {
         var type = data[1],
             value = data[2],
-            labelView = this.labelView;
+            labelView = this._labelView,
+            txt, bgColor, txtColor;
         
         if (type === 'month') {
-            labelView.setText(moment.months()[value]);
-            this.setBgColor('#eeeeee');
-            labelView.setTextColor('#666666');
+            txt = moment.months()[value];
+            bgColor = '#eeeeee';
+            txtColor = '#666666';
         } else if (type === 'year') {
-            labelView.setText(value);
-            this.setBgColor('#eeeeee');
-            labelView.setTextColor('#666666');
+            txt = value;
+            bgColor = '#eeeeee';
+            txtColor = '#666666';
         } else if (type === 'monthyear') {
-            labelView.setText(moment.months()[value] + ' - ' + data[3]);
-            this.setBgColor('#999999');
-            labelView.setTextColor('#ffffff');
+            txt = moment.months()[value] + ' - ' + data[3];
+            bgColor = '#999999';
+            txtColor = '#ffffff';
         }
+        labelView.setText(txt);
+        this.setBgColor(bgColor);
+        labelView.setTextColor(txtColor);
         
         this.setVisible(true);
         this.setWidth(width);

@@ -4,7 +4,16 @@
         None
     
     Attributes:
-        None
+        dataLoaded:boolean
+        openingBalance:number
+        startDate:Date
+        endDate:Date
+    
+    Private Attributes:
+        _idCounter:number
+        _data:object
+        _accounts:array
+        _accountCols:number
 */
 af.Model = new JS.Class('Model', myt.Node, {
     // Class Methods and Attributes ////////////////////////////////////////////
@@ -21,7 +30,6 @@ af.Model = new JS.Class('Model', myt.Node, {
     
     // Life Cycle //////////////////////////////////////////////////////////////
     initNode: function(parent, attrs) {
-        this._ready = false;
         this._idCounter = 0;
         this._data = {};
         this._accounts = [];
@@ -37,13 +45,8 @@ af.Model = new JS.Class('Model', myt.Node, {
     
     
     // Accessors ///////////////////////////////////////////////////////////////
-    setForecaster: function(v) {
-        this.forecaster = v;
-    },
-    
-    setAccountList: function(v) {
-        this.accountList = v;
-    },
+    setForecaster: function(v) {this.forecaster = v;},
+    setAccountList: function(v) {this.accountList = v;},
     
     setOpeningBalance: function (v) {
         this.openingBalance = v;
@@ -180,10 +183,11 @@ af.Model = new JS.Class('Model', myt.Node, {
         forecaster.startDateValueView.setValue(this.startDate.format('m/d/Y'));
         forecaster.endDateValueView.setValue(this.endDate.format('m/d/Y'));
         
-        this._ready = true;
+        this.sumCols();
+        this.dataLoaded = true;
     },
     
-    serialize: function() {
+    _serialize: function() {
         var recurrences = [], data = this._data, key, recurrence;
         for (key in data) {
             recurrence = data[key];
@@ -209,7 +213,7 @@ af.Model = new JS.Class('Model', myt.Node, {
     },
     
     save: function() {
-        if (this._ready) {
+        if (this.dataLoaded) {
             var forecaster = this.forecaster;
             this._save();
             forecaster.refreshItems();
@@ -218,7 +222,7 @@ af.Model = new JS.Class('Model', myt.Node, {
     },
     
     saveAccounts: function(noRefresh) {
-        if (this._ready) {
+        if (this.dataLoaded) {
             this._save();
             if (!noRefresh) {
                 this.accountList.refresh();
@@ -233,7 +237,7 @@ af.Model = new JS.Class('Model', myt.Node, {
         if (self._saveTimerId) clearTimeout(self._saveTimerId);
         
         self._saveTimerId = setTimeout(function() {
-            self.forecaster.saveData(self.serialize());
+            self.forecaster.saveData(self._serialize());
         }, 3000);
     },
     
@@ -252,6 +256,13 @@ af.Model = new JS.Class('Model', myt.Node, {
         return recurrence;
     },
     
+    getRecurrences: function() {
+        var retval = [], data = this._data, key;
+        for (key in data) retval.push(data[key]);
+        retval.sort(function(a, b) {return a.id - b.id;});
+        return retval;
+    },
+    
     remove: function(id) {
         var data = this._data,
             recurrence = data[id];
@@ -262,36 +273,6 @@ af.Model = new JS.Class('Model', myt.Node, {
         return recurrence;
     },
     
-    // Accounts CRUD //
-    addAccount: function(label, data, id) {
-        if (!id) id = this._newId();
-        if (this._getAccount(id)) {
-            console.warn('Account already exists.');
-            return;
-        }
-        this._accounts.push(new af.Account(this, {label:label, data:data, id:id}));
-        this.saveAccounts();
-    },
-    
-    _getAccount: function(id) {
-        var accounts = this._accounts, i = accounts.length;
-        while (i) if (accounts[--i].id === id) return accounts[i];
-    },
-    
-    removeAccount: function(id) {
-        var accounts = this._accounts, i = accounts.length, account;
-        while (i) {
-            account = accounts[--i];
-            if (account.id === id) {
-                accounts.splice(i, 1);
-                this.saveAccounts();
-                return account;
-            }
-        }
-        return null;
-    },
-    
-    // Queries //
     getItems: function() {
         var startDate = this.startDate,
             endDate = this.endDate,
@@ -312,21 +293,15 @@ af.Model = new JS.Class('Model', myt.Node, {
         // Insert divider items
         var len = items.length;
         if (len > 0) {
-            // FIXME: provide confiuration for these
-            var yearDividers = true;
-            var monthDividers = true;
-            
-            var i = len, lowerDate, upperDate;
+            var yearDividers = af.USE_YEAR_DIVIDERS,
+                monthDividers = af.USE_MONTH_DIVIDERS,
+                i = len, lowerDate, upperDate;
             while (i) {
                 upperDate = moment(items[--i][1]);
-                
                 if (i === 0) break;
-                
                 lowerDate = moment(items[i - 1][1]);
-                
                 this._addDivider(items, i, lowerDate, upperDate, monthDividers, yearDividers);
             }
-            
             this._addDivider(items, i, null, upperDate, monthDividers, yearDividers);
         }
         
@@ -356,16 +331,38 @@ af.Model = new JS.Class('Model', myt.Node, {
         }
     },
     
-    getRecurrences: function() {
-        var retval = [], data = this._data, key;
-        for (key in data) retval.push(data[key]);
-        retval.sort(function(a, b) {return a.id - b.id;});
-        return retval;
+    // Accounts CRUD //
+    addAccount: function(label, data, id) {
+        if (!id) id = this._newId();
+        if (this._getAccount(id)) {
+            console.warn('Account already exists.');
+            return;
+        }
+        this._accounts.push(new af.Account(this, {label:label, data:data, id:id}));
+        this.saveAccounts();
+    },
+    
+    _getAccount: function(id) {
+        var accounts = this._accounts, i = accounts.length;
+        while (i) if (accounts[--i].id === id) return accounts[i];
     },
     
     getAccounts: function() {
         var retval = this._accounts;
         retval.sort(function(a, b) {return a.id - b.id;});
         return retval;
+    },
+    
+    removeAccount: function(id) {
+        var accounts = this._accounts, i = accounts.length, account;
+        while (i) {
+            account = accounts[--i];
+            if (account.id === id) {
+                accounts.splice(i, 1);
+                this.saveAccounts();
+                return account;
+            }
+        }
+        return null;
     }
 });

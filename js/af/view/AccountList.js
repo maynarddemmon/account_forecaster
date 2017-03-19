@@ -4,7 +4,13 @@
         None
     
     Attributes:
-        None
+        model:af.Account
+    
+    Private Attributes:
+        _headerView
+        _colsView
+        _scrollView
+        _containerView
 */
 af.AccountList = new JS.Class('AccountList', myt.View, {
     // Life Cycle //////////////////////////////////////////////////////////////
@@ -21,26 +27,20 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
             B = af.Button,
             headerHeight = 74;
         
-        var headerView = this.headerView = new V(this, {
-            height:headerHeight, bgColor:'#dddddd'
-        });
-        
+        var headerView = self._headerView = new V(self, {height:headerHeight, bgColor:'#dddddd'});
         var addBtn = new B(headerView, {
-            ignoreLayout:true,
             x:2, y:53, text:FA.makeTag(['plus']) + ' New Account', buttonType:'green', 
             width:104, tooltip:'Create a new account.'
-        }, [{
-            doActivated: function() {self.model.addAccount();}
-        }]);
+        }, [{doActivated: function() {self.model.addAccount();}}]);
         FA.registerForNotification(addBtn.textView);
         
-        var colsView = this.colsView = new V(headerView, {x:150, y:1, height:72, bgColor:'#f8f8f8'});
+        var colsView = self._colsView = new V(headerView, {x:150, y:1, height:72, bgColor:'#f8f8f8'});
         new M.SpacedLayout(colsView, {spacing:1, collapseParent:true});
         
-        var scrollView = this.scrollView = new V(this, {
+        var scrollView = self._scrollView = new V(self, {
             y:headerHeight, height:this.height - headerHeight, overflow:'autoy'
         });
-        this.containerView = new V(scrollView, {}, [{
+        self._containerView = new V(scrollView, {}, [{
             initNode: function(parent, attrs) {
                 this.callSuper(parent, attrs);
                 this.pool = new M.TrackActivesPool(af.AccountItemView, this);
@@ -85,46 +85,41 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
     setWidth: function(v, supressEvent) {
         if (v > 0) {
             this.callSuper(v, supressEvent);
-            if (this.inited) this._updateWidth();
+            if (this.inited) {
+                v = this.width;
+                this._headerView.setWidth(v);
+                this._scrollView.setWidth(v);
+                this._containerView.setWidth(v);
+            }
         }
-    },
-    
-    _updateWidth: function() {
-        var v = this.width;
-        this.headerView.setWidth(v);
-        this.scrollView.setWidth(v);
-        this.containerView.setWidth(v);
     },
     
     setHeight: function(v, supressEvent) {
         if (v > 0) {
             this.callSuper(v, supressEvent);
-            if (this.inited) this._updateHeight();
+            if (this.inited) {
+                v = this.height;
+                var scrollView = this._scrollView;
+                scrollView.setHeight(v - scrollView.y);
+            }
         }
-    },
-    
-    _updateHeight: function() {
-        var scrollView = this.scrollView;
-        scrollView.setHeight(this.height - scrollView.y);
     },
     
     
     // Methods /////////////////////////////////////////////////////////////////
     refresh: function() {
-        if (!this.model.dataLoaded) return;
-        
-        var accounts = this.model.getAccounts();
-        this.containerView.replicate(accounts);
+        var model = this.model;
+        if (model.dataLoaded) this._containerView.replicate(model.getAccounts());
     },
     
     refreshCols: function(v) {
-        if (!this.model.dataLoaded) return;
-        this.containerView.notify('cols', this.model._accountCols);
+        var model = this.model;
+        if (model.dataLoaded) this._containerView.notify('cols', model._accountCols);
     },
     
     updateTotals: function(totals) {
         var totalLen = totals.length,
-            colsView = this.colsView,
+            colsView = this._colsView,
             svs = colsView.getSubviews();
         
         // Destroy Children
@@ -150,23 +145,23 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
 af.ColTotalView = new JS.Class('ColTotalView', myt.View, {
     include:[myt.MouseOver],
     
+    
     // Life Cycle //////////////////////////////////////////////////////////////
     /** @overrides */
     initNode: function(parent, attrs) {
         attrs.bgColor = '#eeeeee';
         attrs.width = 20;
-        attrs.height = af.AccountItemView.HEIGHT;
+        attrs.height = af.ITEM_HEIGHT_ACCOUNT;
         
         this.callSuper(parent, attrs);
         
-        var M = myt;
+        var self = this,
+            M = myt;
         
-        this.barView = new M.View(this, {width:20});
+        self.barView = new M.View(self, {width:20});
         
-        var labelView = this.labelView = new M.Text(this, {
-            x:2, y:2, roundedCorners:2, bgColor:'#ffffff',
-            opacity:0, zIndex:1,
-            text:this.value
+        var labelView = self.labelView = new M.Text(self, {
+            x:2, y:2, roundedCorners:2, bgColor:'#ffffff', opacity:0, zIndex:1
         });
         labelView.deStyle.padding = '2px 4px 2px 4px';
     },

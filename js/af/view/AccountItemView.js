@@ -5,23 +5,22 @@
     
     Attributes:
         None
+    
+    Private Attributes:
+        _ready:boolean
+        _account:af.Account
+        _labelView
+        _colsView
 */
 af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
     include:[af.BaseItemMixin],
     
     
-    // Class Methods and Attributes ////////////////////////////////////////////
-    extend: {
-        HEIGHT:72
-    },
-    
-    
     // Life Cycle //////////////////////////////////////////////////////////////
     /** @overrides */
     initNode: function(parent, attrs) {
-        attrs.height = af.AccountItemView.HEIGHT;
+        attrs.height = af.ITEM_HEIGHT_ACCOUNT;
         attrs.bgColor = '#f8f8f8';
-        attrs.tipAlign = 'right';
         
         this.callSuper(parent, attrs);
         
@@ -32,32 +31,28 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
         var deleteBtn = new af.Button(self, {
             x:2, y:2, height:20, text:af.DELETE_TXT, buttonType:'red', 
             width:20, inset:5, tooltip:'Remove this account.'
-        }, [{
-            doActivated: function() {self.removeIt();}
-        }]);
+        }, [{doActivated: function() {self._removeIt();}}]);
         FA.registerForNotification(deleteBtn.textView);
         
-        var labelView = self.labelView = new M.InputText(self, {
+        var labelView = self._labelView = new M.InputText(self, {
             x:26, y:2, width:120, height:20, roundedCorners:2, bgColor:'#ffffff',
             maxLength:128, placeholder:'Enter Account Name'
         }, [{
             setValue: function(v) {
                 this.callSuper(v);
                 if (self._ready) {
-                    if (self._account) self._account.setLabel(this.value);
+                    var account = self._account;
+                    if (account) account.setLabel(this.value);
                 }
             }
         }]);
         labelView.deStyle.padding = '1px 4px 3px 4px';
         
-        var colsView = self.colsView = new M.View(self, {x:150});
+        var colsView = self._colsView = new M.View(self, {x:150});
         new M.SpacedLayout(colsView, {spacing:1, collapseParent:true});
         
         self._ready = true;
     },
-    
-    
-    // Accessors ///////////////////////////////////////////////////////////////
     
     
     // Methods /////////////////////////////////////////////////////////////////
@@ -65,7 +60,7 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
         this._ready = false;
         this._account = account;
         
-        this.labelView.setValue(account.label);
+        this._labelView.setValue(account.label);
         
         this._ready = true;
         
@@ -77,7 +72,7 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
         this._ready = false;
         
         if (key === 'cols') {
-            var colsView = this.colsView,
+            var colsView = this._colsView,
                 svs = colsView.getSubviews();
             
             // Destroy Children
@@ -105,7 +100,7 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
     _updateBars: function() {
         var model = this._account,
             range = model.getValueRange(),
-            svs = this.colsView.getSubviews(),
+            svs = this._colsView.getSubviews(),
             i = svs.length,
             sv;
         while (i) {
@@ -120,7 +115,7 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
         this.setVisible(false);
     },
     
-    removeIt: function() {
+    _removeIt: function() {
         if (this._ready) {
             var account = this._account;
             myt.global.forecaster.dimmer.showConfirm(
@@ -145,7 +140,7 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
     initNode: function(parent, attrs) {
         attrs.bgColor = '#eeeeee';
         attrs.width = 20;
-        attrs.height = af.AccountItemView.HEIGHT;
+        attrs.height = af.ITEM_HEIGHT_ACCOUNT;
         
         this.callSuper(parent, attrs);
         
@@ -157,7 +152,7 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
         this.barView = new M.View(self, {width:20});
         
         var valueView = self.valueView = new M.InputText(self, {
-            x:2, y:2, width:80, height:20, roundedCorners:2, bgColor:'#ffffff',
+            x:2, y:2, width:90, height:20, roundedCorners:2, bgColor:'#ffffff',
             maxLength:16, allowedChars:'0123456789,.-$', opacity:0, zIndex:1
         }, [{
             initNode: function(parent, attrs) {
