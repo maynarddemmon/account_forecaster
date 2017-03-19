@@ -94,7 +94,6 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
         this.headerView.setWidth(v);
         this.scrollView.setWidth(v);
         this.containerView.setWidth(v);
-        this.colsView.setWidth(v - this.colsView.x);
     },
     
     setHeight: function(v, supressEvent) {
