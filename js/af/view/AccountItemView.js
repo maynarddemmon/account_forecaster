@@ -12,7 +12,7 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
     
     // Class Methods and Attributes ////////////////////////////////////////////
     extend: {
-        HEIGHT:60,
+        HEIGHT:72,
         DELETE_TXT:myt.FontAwesome.makeTag(['times'])
     },
     
@@ -154,7 +154,7 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
         this.barView = new M.View(this, {width:20});
         
         var valueView = this.valueView = new M.InputText(this, {
-            x:2, y:2, width:56, height:20, roundedCorners:2, bgColor:'#ffffff',
+            x:2, y:2, width:80, height:20, roundedCorners:2, bgColor:'#ffffff',
             maxLength:16, allowedChars:'0123456789,.-',
             opacity:0, zIndex:1,
             value:self.value
@@ -242,12 +242,14 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
     },
     
     doMouseOver: function() {
+        this.valueView.setZIndex(2);
         this.valueView.setOpacity(0.75);
         this.valueView.focus();
         this.barView.setOpacity(0.25);
     },
     
     doMouseOut: function() {
+        this.valueView.setZIndex(1);
         this.valueView.setOpacity(0);
         this.barView.setOpacity(1);
     }

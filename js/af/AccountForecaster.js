@@ -283,8 +283,9 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         var model = this.model = new af.Model(this, {forecaster:this, accountList:accountList});
         accountList.setModel(model);
         this.loadData(function(data) {
-            self.model.deserialize(data);
-            self.model.dataLoaded = true;
+            model.deserialize(data);
+            model.sumCols();
+            model.dataLoaded = true;
             self.refreshItems();
             self.refreshRecurrences();
             accountList.refresh();

@@ -124,6 +124,23 @@ af.Model = new JS.Class('Model', myt.Node, {
         this.setAccountCols(maxIdx + 1);
     },
     
+    sumCols: function() {
+        var accounts = this._accounts, i = accounts.length,
+            accountData,
+            j, datum
+            colTotals = [];
+        while (i) {
+            accountData = accounts[--i].data;
+            j = accountData.length;
+            while (j) {
+                datum = accountData[--j];
+                if (datum) colTotals[j] = (colTotals[j] || 0) +  datum;
+            }
+        }
+        
+        console.log(colTotals);
+    },
+    
     // IO //
     deserialize: function(data) {
         var forecaster = this.forecaster;

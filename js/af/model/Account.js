@@ -65,6 +65,7 @@ af.Account = new JS.Class('Account', myt.Node, {
         this.data[idx] = value;
         
         this.parent.verifyColCount();
+        this.parent.sumCols();
         
         if (this.inited) this.parent.saveAccounts(true);
     },
