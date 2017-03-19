@@ -96,7 +96,6 @@ af.Model = new JS.Class('Model', myt.Node, {
     setAccountCols: function(v) {
         if (this._accountCols !== v) {
             this._accountCols = v;
-            
             this.saveAccounts();
         }
     },
@@ -188,7 +187,7 @@ af.Model = new JS.Class('Model', myt.Node, {
         var recurrences = [], data = this._data, key, recurrence;
         for (key in data) {
             recurrence = data[key];
-            recurrences.push([recurrence.recurrenceId, recurrence.type, recurrence.label, recurrence.recurrenceData]);
+            recurrences.push([recurrence.id, recurrence.type, recurrence.label, recurrence.recurrenceData]);
         }
         
         var accountData = [],
@@ -239,52 +238,44 @@ af.Model = new JS.Class('Model', myt.Node, {
     },
     
     // CRUD //
-    add: function(type, label, recurrenceData, recurrenceId) {
-        if (!recurrenceId) recurrenceId = this._newId();
+    add: function(type, label, recurrenceData, id) {
+        if (!id) id = this._newId();
         var klass = af.Model.CLASSES_BY_TYPE[type];
         if (!klass) {
             console.warn('Unknown recurrence type provided to add: ' + type);
             return null;
         }
-        var recurrence = this._data[recurrenceId] = new klass(this, {
-            type:type, label:label, recurrenceData:recurrenceData, recurrenceId:recurrenceId
+        var recurrence = this._data[id] = new klass(this, {
+            type:type, label:label, recurrenceData:recurrenceData, id:id
         });
         this.save();
         return recurrence;
     },
     
-    get: function(recurrenceId) {
-        return this._data[recurrenceId];
-    },
-    
-    remove: function(recurrenceId) {
-        var recurrence = this.get(recurrenceId);
-        if (recurrence) delete this._data[recurrenceId];
-        this.save();
+    remove: function(id) {
+        var data = this._data,
+            recurrence = data[id];
+        if (recurrence) {
+            delete data[id];
+            this.save();
+        }
         return recurrence;
     },
     
     // Accounts CRUD //
     addAccount: function(label, data, id) {
         if (!id) id = this._newId();
-        var account = this.getAccount(id);
-        if (account) {
+        if (this._getAccount(id)) {
             console.warn('Account already exists.');
-            return null;
+            return;
         }
-        account = new af.Account(this, {label:label, data:data, id:id});
-        this._accounts.push(account);
+        this._accounts.push(new af.Account(this, {label:label, data:data, id:id}));
         this.saveAccounts();
-        return account;
     },
     
-    getAccount: function(id) {
-        var accounts = this._accounts, i = accounts.length, account;
-        while (i) {
-            account = accounts[--i];
-            if (account.id === id) return account;
-        }
-        return null;
+    _getAccount: function(id) {
+        var accounts = this._accounts, i = accounts.length;
+        while (i) if (accounts[--i].id === id) return accounts[i];
     },
     
     removeAccount: function(id) {
@@ -366,13 +357,10 @@ af.Model = new JS.Class('Model', myt.Node, {
     },
     
     getRecurrences: function() {
-        var recurrences = [], data = this._data, key;
-        for (key in data) recurrences.push(data[key]);
-        
-        // Sort by id
-        recurrences.sort(function(a, b) {return a.recurrenceId - b.recurrenceId;});
-        
-        return recurrences;
+        var retval = [], data = this._data, key;
+        for (key in data) retval.push(data[key]);
+        retval.sort(function(a, b) {return a.id - b.id;});
+        return retval;
     },
     
     getAccounts: function() {

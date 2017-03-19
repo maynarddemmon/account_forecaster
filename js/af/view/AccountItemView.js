@@ -12,16 +12,14 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
     
     // Class Methods and Attributes ////////////////////////////////////////////
     extend: {
-        HEIGHT:72,
-        DELETE_TXT:myt.FontAwesome.makeTag(['times'])
+        HEIGHT:72
     },
     
     
     // Life Cycle //////////////////////////////////////////////////////////////
     /** @overrides */
     initNode: function(parent, attrs) {
-        var AIV = af.AccountItemView;
-        attrs.height = AIV.HEIGHT;
+        attrs.height = af.AccountItemView.HEIGHT;
         attrs.bgColor = '#f8f8f8';
         attrs.tipAlign = 'right';
         
@@ -31,15 +29,15 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
             M = myt,
             FA = M.FontAwesome;
         
-        var deleteBtn = new af.Button(this, {
-            x:2, y:2, height:20, text:AIV.DELETE_TXT, buttonType:'red', 
-            width:20, inset:0, tooltip:'Remove this account.'
+        var deleteBtn = new af.Button(self, {
+            x:2, y:2, height:20, text:af.DELETE_TXT, buttonType:'red', 
+            width:20, inset:5, tooltip:'Remove this account.'
         }, [{
             doActivated: function() {self.removeIt();}
         }]);
         FA.registerForNotification(deleteBtn.textView);
         
-        var labelView = this.labelView = new M.InputText(this, {
+        var labelView = self.labelView = new M.InputText(self, {
             x:26, y:2, width:120, height:20, roundedCorners:2, bgColor:'#ffffff',
             maxLength:128, placeholder:'Enter Account Name'
         }, [{
@@ -52,10 +50,10 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
         }]);
         labelView.deStyle.padding = '1px 4px 3px 4px';
         
-        var colsView = this.colsView = new M.View(this, {x:150});
+        var colsView = self.colsView = new M.View(self, {x:150});
         new M.SpacedLayout(colsView, {spacing:1, collapseParent:true});
         
-        this._ready = true;
+        self._ready = true;
     },
     
     
@@ -105,11 +103,15 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
     },
     
     _updateBars: function() {
-        var range = this._account.getValueRange(),
-            colsView = this.colsView,
-            svs = colsView.getSubviews(),
-            i = svs.length;
-        while (i) svs[--i].updateBar(range);
+        var model = this._account,
+            range = model.getValueRange(),
+            svs = this.colsView.getSubviews(),
+            i = svs.length,
+            sv;
+        while (i) {
+            sv = svs[--i];
+            af.updateBar(range, model.getDatum(i), sv.height, sv.barView);
+        }
     },
     
     clean: function() {
@@ -148,16 +150,15 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
         this.callSuper(parent, attrs);
         
         var self = this,
-            itemView = this.itemView,
+            itemView = self.itemView,
+            model = itemView._account,
             M = myt;
         
-        this.barView = new M.View(this, {width:20});
+        this.barView = new M.View(self, {width:20});
         
-        var valueView = this.valueView = new M.InputText(this, {
+        var valueView = self.valueView = new M.InputText(self, {
             x:2, y:2, width:80, height:20, roundedCorners:2, bgColor:'#ffffff',
-            maxLength:16, allowedChars:'0123456789,.-',
-            opacity:0, zIndex:1,
-            value:self.value
+            maxLength:16, allowedChars:'0123456789,.-$', opacity:0, zIndex:1
         }, [{
             initNode: function(parent, attrs) {
                 this.callSuper(parent, attrs);
@@ -165,18 +166,19 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
             },
             setValue: function(v) {
                 this.callSuper(v);
-                if (self._ready && itemView._ready) {
-                    if (itemView._account) {
-                        itemView._account.setDatum(self.idx, this.value);
+                if (itemView._ready) {
+                    if (model) {
+                        model.setDatum(self.idx, v);
                         itemView._updateBars();
                     }
                 }
             },
             handleKeyDown: function(event) {
-                if (M.KeyObservable.getKeyCodeFromEvent(event) === 13) myt.global.focus.next();
+                if (M.KeyObservable.getKeyCodeFromEvent(event) === 13) M.global.focus.next();
             },
             doFocus: function() {
                 this.callSuper();
+                this.setValue(af.formatCurrency(model.getDatum(self.idx) * 100, true, true));
                 self.doMouseOver();
             },
             doBlur: function() {
@@ -185,72 +187,32 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
             }
         }]);
         valueView.deStyle.padding = '1px 4px 3px 4px';
-        
-        this._ready = true;
     },
     
     
     // Accessors ///////////////////////////////////////////////////////////////
-    setItemView: function(v) {
-        this.itemView = v;
-    },
-    
-    setIdx: function(v) {
-        this.idx = v;
-    },
+    setItemView: function(v) {this.itemView = v;},
+    setIdx: function(v) {this.idx = v;},
     
     setValue: function(v) {
         this.value = v;
-        
-        if (this._ready) {
-            if (!this.valueView.focused) this.valueView.setValue(v);
-        }
+        if (!this.valueView.focused) this.valueView.setValue(v);
     },
     
     
     // Methods /////////////////////////////////////////////////////////////////
-    updateBar: function(range) {
-        var h = this.height,
-            min = range.min,
-            max = range.max,
-            scale, range, zeroPoint
-            value = this.itemView._account.getDatum(this.idx),
-            barView = this.barView,
-            isPositive = value >= 0;
-        
-        if (min < 0 && max > 0) {
-            range = max - min;
-            zeroPoint = max * h / range;
-        } else if (max > 0) {
-            range = max;
-            zeroPoint = h;
-        } else {
-            range = -min;
-            zeroPoint = 0;
-        }
-        scale = h / range;
-        
-        barView.setHeight(Math.abs(value) * scale);
-        
-        if (isPositive) {
-            barView.setBgColor('#333333');
-            barView.setY(zeroPoint - barView.height);
-        } else {
-            barView.setBgColor(af.ItemView.INSUFFICIENT_FUNDS_COLOR);
-            barView.setY(zeroPoint);
-        }
-    },
-    
     doMouseOver: function() {
-        this.valueView.setZIndex(2);
-        this.valueView.setOpacity(0.75);
-        this.valueView.focus();
-        this.barView.setOpacity(0.25);
+        var valueView = this.valueView;
+        valueView.setZIndex(2);
+        valueView.setOpacity(0.75);
+        valueView.focus();
+        this.barView.setOpacity(0.5);
     },
     
     doMouseOut: function() {
-        this.valueView.setZIndex(1);
-        this.valueView.setOpacity(0);
+        var valueView = this.valueView;
+        valueView.setZIndex(1);
+        valueView.setOpacity(0);
         this.barView.setOpacity(1);
     }
 });

@@ -12,17 +12,14 @@ af.RecurrenceItemView = new JS.Class('RecurrenceItemView', myt.SimpleButton, {
     
     // Class Methods and Attributes ////////////////////////////////////////////
     extend: {
-        HEIGHT:24,
-        DELETE_TXT:myt.FontAwesome.makeTag(['times']),
-        EDIT_TXT:myt.FontAwesome.makeTag(['edit'])
+        HEIGHT:24
     },
     
     
     // Life Cycle //////////////////////////////////////////////////////////////
     /** @overrides */
     initNode: function(parent, attrs) {
-        var RIV = af.RecurrenceItemView;
-        attrs.height = RIV.HEIGHT;
+        attrs.height = af.RecurrenceItemView.HEIGHT;
         attrs.activeColor = '#e8e8e8';
         attrs.hoverColor = '#eeeeee';
         attrs.readyColor = '#f8f8f8';
@@ -35,10 +32,9 @@ af.RecurrenceItemView = new JS.Class('RecurrenceItemView', myt.SimpleButton, {
             M = myt,
             FA = M.FontAwesome;
         
-        
         var editBtn = new af.Button(this, {
-            x:2, y:2, height:20, text:RIV.EDIT_TXT, buttonType:'green', 
-            width:20, inset:2, textY:4, tooltip:'Edit this recurrence.'
+            x:2, y:2, height:20, text:af.EDIT_TXT, buttonType:'green', 
+            width:20, inset:5, textY:4, tooltip:'Edit this recurrence.'
         }, [{
             doActivated: function() {self.doActivated();}
         }]);
@@ -48,8 +44,8 @@ af.RecurrenceItemView = new JS.Class('RecurrenceItemView', myt.SimpleButton, {
         labelView.enableEllipsis();
         
         var deleteBtn = new af.Button(this, {
-            x:178, y:2, height:20, text:RIV.DELETE_TXT, buttonType:'red', 
-            width:20, inset:0, tooltip:'Remove this recurrence.'
+            x:178, y:2, height:20, text:af.DELETE_TXT, buttonType:'red', 
+            width:20, inset:5, tooltip:'Remove this recurrence.'
         }, [{
             doActivated: function() {self.removeIt();}
         }]);

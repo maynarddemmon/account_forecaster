@@ -78,7 +78,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
                 return retval;
             }
         }]);
-        new B(centerView, {y:-1, width:70, text:'Pick Date', tooltip:'Pick a start date.'}, [{
+        new B(centerView, {y:-1, width:68, text:'Pick Date', tooltip:'Pick a start date.'}, [{
             doActivated: function() {
                 var curValue = startDateValueView.getValue();
                 dimmer.showDatePicker(
@@ -107,7 +107,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
                 return retval;
             }
         }]);
-        new B(centerView, {y:-1, width:70, text:'Pick Date', tooltip:'Pick an end date.'}, [{
+        new B(centerView, {y:-1, width:68, text:'Pick Date', tooltip:'Pick an end date.'}, [{
             doActivated: function() {
                 var curValue = endDateValueView.getValue();
                 
@@ -135,7 +135,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         });
         var addBtn = new B(leftMiddleHeaderView, {
             x:2, y:5, text:FA.makeTag(['plus']) + ' New', buttonType:'green', 
-            width:50, inset:0, tooltip:'Create a new recurrence.'
+            width:52, tooltip:'Create a new recurrence.'
         }, [{
             doActivated: function() {self.newRecurrence();}
         }]);
@@ -731,7 +731,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
                         } else {
                             if (recurrence.type !== value.type) {
                                 // Type has changed we need to make a new recurrence
-                                self.model.remove(recurrence.recurrenceId);
+                                self.model.remove(recurrence.id);
                                 recurrence.destroy();
                                 recurrence = self.model.add(value.type, value.label);
                                 recurrence.setFormData(value);

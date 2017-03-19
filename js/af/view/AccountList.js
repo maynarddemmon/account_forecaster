@@ -28,9 +28,9 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
         var addBtn = new B(headerView, {
             ignoreLayout:true,
             x:2, y:53, text:FA.makeTag(['plus']) + ' New Account', buttonType:'green', 
-            width:105, contentAlign:'left', inset:6, tooltip:'Create a new account.'
+            width:104, tooltip:'Create a new account.'
         }, [{
-            doActivated: function() {self.newAccount();}
+            doActivated: function() {self.model.addAccount();}
         }]);
         FA.registerForNotification(addBtn.textView);
         
@@ -111,10 +111,6 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
     
     
     // Methods /////////////////////////////////////////////////////////////////
-    newAccount: function() {
-        this.model.addAccount();
-    },
-    
     refresh: function() {
         if (!this.model.dataLoaded) return;
         
@@ -143,9 +139,12 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
             i = 0;
         for (; len > i; i++) svs[i].setValue(totals[i] || 0);
         
-        var range = af.getValueRange(totals),
-            i = svs.length;
-        while (i) svs[--i].updateBar(range);
+        var range = af.getValueRange(totals), sv;
+        i = svs.length;
+        while (i) {
+            sv = svs[--i];
+            af.updateBar(range, sv.value, sv.height, sv.barView);
+        }
     }
 });
 
@@ -161,67 +160,31 @@ af.ColTotalView = new JS.Class('ColTotalView', myt.View, {
         
         this.callSuper(parent, attrs);
         
-        var self = this,
-            M = myt;
+        var M = myt;
         
         this.barView = new M.View(this, {width:20});
         
         var labelView = this.labelView = new M.Text(this, {
             x:2, y:2, roundedCorners:2, bgColor:'#ffffff',
             opacity:0, zIndex:1,
-            text:self.value
+            text:this.value
         });
         labelView.deStyle.padding = '2px 4px 2px 4px';
-        
-        this._ready = true;
     },
     
     
     // Accessors ///////////////////////////////////////////////////////////////
     setValue: function(v) {
         this.value = v;
-        
-        if (this._ready) this.labelView.setText('total: ' + af.formatCurrency(v * 100, true, true));
+        this.labelView.setText('total: ' + af.formatCurrency(v * 100, true, true));
     },
     
     
     // Methods /////////////////////////////////////////////////////////////////
-    updateBar: function(range) {
-        var h = this.height,
-            min = range.min,
-            max = range.max,
-            scale, range, zeroPoint
-            value = this.value,
-            barView = this.barView,
-            isPositive = value >= 0;
-        
-        if (min < 0 && max > 0) {
-            range = max - min;
-            zeroPoint = max * h / range;
-        } else if (max > 0) {
-            range = max;
-            zeroPoint = h;
-        } else {
-            range = -min;
-            zeroPoint = 0;
-        }
-        scale = h / range;
-        
-        barView.setHeight(Math.abs(value) * scale);
-        
-        if (isPositive) {
-            barView.setBgColor('#333333');
-            barView.setY(zeroPoint - barView.height);
-        } else {
-            barView.setBgColor(af.ItemView.INSUFFICIENT_FUNDS_COLOR);
-            barView.setY(zeroPoint);
-        }
-    },
-    
     doMouseOver: function() {
         this.labelView.setZIndex(2);
         this.labelView.setOpacity(0.75);
-        this.barView.setOpacity(0.25);
+        this.barView.setOpacity(0.5);
     },
     
     doMouseOut: function() {

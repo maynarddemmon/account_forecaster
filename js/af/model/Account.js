@@ -45,6 +45,9 @@ af.Account = new JS.Class('Account', myt.Node, {
             // Remove all commas
             value = value.split(',').join('');
             
+            // Remove all dollar signs
+            value = value.split('$').join('');
+            
             // Remove too many decimals
             var parts = value.split('.');
             value = parts[0] + (parts[1] ? '.' + parts[1] : '');

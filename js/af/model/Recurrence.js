@@ -73,23 +73,16 @@ af.Recurrence = new JS.Class('Recurrence', myt.Node, {
     
     
     // Accessors ///////////////////////////////////////////////////////////////
-    setType: function(v) {
-        this.type = v;
-    },
-    
-    setRecurrenceId: function(v) {
-        this.recurrenceId = v;
-    },
+    setType: function(v) {this.type = v;},
+    setId: function(v) {this.id = v;},
     
     setLabel: function(v) {
         this.label = v || '';
-        
         if (this.inited) this.parent.save();
     },
     
     setRecurrenceData: function(v) {
         this.recurrenceData = v;
-        
         if (this.inited) this.parent.save();
     },
     
@@ -100,7 +93,7 @@ af.Recurrence = new JS.Class('Recurrence', myt.Node, {
     },
     
     removeIt: function() {
-        this.parent.remove(this.recurrenceId);
+        this.parent.remove(this.id);
     },
     
     getFormData: function() {

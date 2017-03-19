@@ -30,6 +30,9 @@
     - Make Year and month, dividers configurable?
 */
 af = {
+    DELETE_TXT:myt.FontAwesome.makeTag(['times']),
+    EDIT_TXT:myt.FontAwesome.makeTag(['edit']),
+    
     formatItemDate: function(v) {
         return v.format("m/d/Y - h:i:s A");
     },
@@ -93,10 +96,38 @@ af = {
         }
         
         return retval;
+    },
+    
+    updateBar: function(range, value, h, barView) {
+        var min = range.min,
+            max = range.max,
+            zeroPoint,
+            isPositive = value >= 0;
+        
+        if (min < 0 && max > 0) {
+            range = max - min;
+            zeroPoint = max * h / range;
+        } else if (max > 0) {
+            range = max;
+            zeroPoint = h;
+        } else {
+            range = -min;
+            zeroPoint = 0;
+        }
+        
+        barView.setHeight(Math.abs(value) * h / range);
+        
+        if (isPositive) {
+            barView.setBgColor('#333333');
+            barView.setY(zeroPoint - barView.height);
+        } else {
+            barView.setBgColor('#aa0000');
+            barView.setY(zeroPoint);
+        }
     }
 }
 
-af.Button = new JS.Class('af.Button', myt.SimpleIconTextButton, {
+af.Button = new JS.Class('Button', myt.SimpleButton, {
     // Class Methods and Attributes ////////////////////////////////////////////
     extend: {
         ACTIVE_COLOR: '#0099dd',
@@ -117,12 +148,19 @@ af.Button = new JS.Class('af.Button', myt.SimpleIconTextButton, {
     
     // Life Cycle //////////////////////////////////////////////////////////////
     initNode: function(parent, attrs) {
-        var B = af.Button;
+        if (attrs.inset == null) attrs.inset = 6;
+        if (attrs.outset == null) attrs.outset = 6;
+        if (attrs.height == null) attrs.height = 19;
+        if (attrs.textY == null) attrs.textY = 3;
         
-        if (attrs.height === undefined) attrs.height = 19;
         attrs.roundedCorners = 4;
-        if (attrs.textY === undefined) attrs.textY = 3;
         
+        var shrinkToFit = attrs.shrinkToFit,
+            text = attrs.text || '';
+        delete attrs.shrinkToFit;
+        delete attrs.text;
+        
+        var B = af.Button;
         attrs.textColor = B.TEXT_COLOR;
         switch (attrs.buttonType) {
             case 'green':
@@ -144,6 +182,37 @@ af.Button = new JS.Class('af.Button', myt.SimpleIconTextButton, {
         delete attrs.buttonType;
         
         this.callSuper(parent, attrs);
+        
+        var textView = this.textView = new myt.Text(this, {
+            x:this.inset, 
+            y:this.textY, 
+            text:text,
+            whiteSpace:'nowrap',
+            domClass:'myt-Text mytButtonText'
+        });
+        if (shrinkToFit) this.applyConstraint('__update', [this, 'inset', this, 'outset', textView, 'width']);
+    },
+    
+    
+    // Accessors ///////////////////////////////////////////////////////////////
+    setText: function(v) {
+        if (this.inited) this.textView.setText(v);
+    },
+    
+    setTooltip: function(v) {
+        this.domElement.title = v;
+    },
+    
+    
+    // Methods /////////////////////////////////////////////////////////////////
+    /** @private */
+    __update: function(v) {
+        if (!this.destroyed) {
+            var inset = this.inset,
+                textView = this.textView;
+            textView.setX(inset);
+            this.setWidth(inset + textView.width + this.outset);
+        }
     }
 })
 
