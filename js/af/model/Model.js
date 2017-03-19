@@ -148,11 +148,13 @@ af.Model = new JS.Class('Model', myt.Node, {
             }
             
             var accounts = data.accounts;
-            len = accounts.length;
-            i = 0;
-            for (; len > i; i++) {
-                datum = accounts[i];
-                this.addAccount(datum[1], datum[2], datum[0]);
+            if (accounts) {
+                len = accounts.length;
+                i = 0;
+                for (; len > i; i++) {
+                    datum = accounts[i];
+                    this.addAccount(datum[1], datum[2], datum[0]);
+                }
             }
             
             this.setAccountCols(data.accountCols || 1);
