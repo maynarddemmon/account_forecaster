@@ -118,7 +118,7 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
 });
 
 af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
-    include:[myt.MouseOver],
+    include:[myt.MouseOverAndDown],
     
     // Life Cycle //////////////////////////////////////////////////////////////
     /** @overrides */
@@ -180,7 +180,16 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
     
     
     // Methods /////////////////////////////////////////////////////////////////
-    doMouseOver: function() {
+    doMouseDown: function(event) {
+        this.callSuper(event);
+        
+        // Don't interfere with mouse behavior in the InputText
+        if (event.value.srcElement === this._valueView.domElement) return true;
+    },
+    
+    doMouseOver: function(event) {
+        this.callSuper(event);
+        
         var valueView = this._valueView;
         valueView.setZIndex(2);
         valueView.setOpacity(0.75);
@@ -188,7 +197,9 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
         this.barView.setOpacity(0.5);
     },
     
-    doMouseOut: function() {
+    doMouseOut: function(event) {
+        this.callSuper(event);
+        
         var valueView = this._valueView;
         valueView.setZIndex(1);
         valueView.setOpacity(0);

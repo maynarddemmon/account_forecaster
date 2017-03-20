@@ -149,7 +149,7 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
 });
 
 af.ColTotalView = new JS.Class('ColTotalView', myt.View, {
-    include:[myt.MouseOver],
+    include:[myt.MouseOverAndDown],
     
     
     // Life Cycle //////////////////////////////////////////////////////////////
@@ -213,7 +213,16 @@ af.ColTotalView = new JS.Class('ColTotalView', myt.View, {
     
     
     // Methods /////////////////////////////////////////////////////////////////
-    doMouseOver: function() {
+    doMouseDown: function(event) {
+        this.callSuper(event);
+        
+        // Don't interfere with mouse behavior in the InputText
+        if (event.value.srcElement === this._labelView.domElement) return true;
+    },
+    
+    doMouseOver: function(event) {
+        this.callSuper(event);
+        
         var valueView = this._valueView;
         valueView.setZIndex(2);
         valueView.setOpacity(0.75);
@@ -229,7 +238,9 @@ af.ColTotalView = new JS.Class('ColTotalView', myt.View, {
         labelView.focus();
     },
     
-    doMouseOut: function() {
+    doMouseOut: function(event) {
+        this.callSuper(event);
+        
         var valueView = this._valueView;
         valueView.setZIndex(1);
         valueView.setOpacity(0);

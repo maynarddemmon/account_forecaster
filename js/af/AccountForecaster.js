@@ -361,6 +361,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
     
     saveData: function(data, callback) {
         myt.LocalStorage.setItem('data', data ? data : '');
+        this.showTemporaryMessage("Data saved to your browser's local storage.");
         if (callback) callback(true);
     },
     
@@ -424,6 +425,21 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         if (recurrenceData.minute == null) recurrenceData.minute = '' + now.getMinutes();
         
         return formData;
+    },
+    
+    showTemporaryMessage: function(msg) {
+        var msgView = this._msgView;
+        if (!msgView) {
+            msgView = new myt.Text(this, {x:4, y:4, bgColor:'#ffffff', roundedCorners:2, opacity:0});
+            msgView.deStyle.padding = '3px 4px 3px 4px';
+            this._msgView = msgView;
+        }
+        
+        msgView.setText(msg);
+        msgView.stopActiveAnimators('opacity');
+        msgView.animate({attribute:'opacity', to:0.75, from:0, duration:250}).next(function(success) {
+            msgView.animate({attribute:'opacity', to:0, from:0.75, duration:2000});
+        });
     },
     
     _showRecurrenceDialog: function(recurrence) {
