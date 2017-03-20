@@ -420,6 +420,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         var now = new Date(), recurrenceData = formData.recurrenceData;
         if (recurrenceData.year == null) recurrenceData.year = '' + now.getFullYear();
         if (recurrenceData.month == null) recurrenceData.month = '' + now.getMonth();
+        if (recurrenceData.dayOfWeek == null) recurrenceData.dayOfWeek = '' + now.getDay();
         if (recurrenceData.day == null) recurrenceData.day = '' + now.getDate();
         if (recurrenceData.hour == null) recurrenceData.hour = '' + now.getHours();
         if (recurrenceData.minute == null) recurrenceData.minute = '' + now.getMinutes();
@@ -636,13 +637,13 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
                     id:'dayOfWeek', form:subform,
                     x:inputX, width:inputWidth, y:-2,
                     options:[
-                        {label:'Monday', value:'0'},
-                        {label:'Tuesday', value:'1'},
-                        {label:'Wednesday', value:'2'},
-                        {label:'Thursday', value:'3'},
-                        {label:'Friday', value:'4'},
-                        {label:'Saturday', value:'5'},
-                        {label:'Sunday', value:'6'}
+                        {label:'Monday', value:'1'},
+                        {label:'Tuesday', value:'2'},
+                        {label:'Wednesday', value:'3'},
+                        {label:'Thursday', value:'4'},
+                        {label:'Friday', value:'5'},
+                        {label:'Saturday', value:'6'},
+                        {label:'Sunday', value:'0'}
                     ]
                 }, [{
                     showFocusEmbellishment: function() {
