@@ -4,7 +4,7 @@
         None
     
     Attributes:
-        model:af.Account
+        model:af.Model
     
     Private Attributes:
         _headerView
@@ -118,7 +118,8 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
     },
     
     updateTotals: function(totals) {
-        var totalLen = totals.length,
+        var model = this.model,
+            totalLen = totals.length,
             colsView = this._colsView,
             svs = colsView.getSubviews();
         
@@ -130,8 +131,13 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
         
         // Update Data
         var len = svs.length,
-            i = 0;
-        for (; len > i; i++) svs[i].setValue(totals[i] || 0);
+            i = 0, sv;
+        for (; len > i; i++) {
+            sv = svs[i];
+            sv.setValue(totals[i] || 0);
+            sv.setIdx(i);
+            sv.setLabel(model.getColumnLabel(i));
+        }
         
         var range = af.getValueRange(totals), sv;
         i = svs.length;
@@ -160,30 +166,78 @@ af.ColTotalView = new JS.Class('ColTotalView', myt.View, {
         
         self.barView = new M.View(self, {width:20});
         
-        var labelView = self.labelView = new M.Text(self, {
-            x:2, y:2, roundedCorners:2, bgColor:'#ffffff', opacity:0, zIndex:1
+        var labelView = self._labelView = new M.InputText(self, {
+            x:2, y:2, width:90, height:20, roundedCorners:2, bgColor:'#ffffff',
+            maxLength:128, opacity:0, zIndex:1, placeholder:'enter label'
+        }, [{
+            initNode: function(parent, attrs) {
+                this.callSuper(parent, attrs);
+                this.attachToDom(this, 'handleKeyDown', 'keydown');
+            },
+            setValue: function(v, noUpdate) {
+                this.callSuper(v);
+                if (!noUpdate) myt.global.forecaster.model.setColumnLabel(self.idx, this.value);
+            },
+            handleKeyDown: function(event) {
+                if (M.KeyObservable.getKeyCodeFromEvent(event) === 13) M.global.focus.next();
+            },
+            doFocus: function() {
+                this.callSuper();
+                self.doMouseOver();
+            },
+            doBlur: function() {
+                this.callSuper();
+                self.doMouseOut();
+            }
+        }]);
+        labelView.deStyle.padding = '1px 4px 3px 4px';
+        
+        var valueView = self._valueView = new M.Text(self, {
+            x:2, y:24, roundedCorners:2, bgColor:'#ffffff', opacity:0, zIndex:1
         });
-        labelView.deStyle.padding = '2px 4px 2px 4px';
+        valueView.deStyle.padding = '3px 4px 3px 4px';
     },
     
     
     // Accessors ///////////////////////////////////////////////////////////////
+    setIdx: function(v) {this.idx = v;},
+    
     setValue: function(v) {
         this.value = v;
-        this.labelView.setText('total: ' + af.formatCurrency(v * 100, true, true));
+        this._valueView.setText('total: ' + af.formatCurrency(v * 100, true, true));
+    },
+    
+    setLabel: function(v) {
+        this._labelView.setValue(v, true);
     },
     
     
     // Methods /////////////////////////////////////////////////////////////////
     doMouseOver: function() {
-        this.labelView.setZIndex(2);
-        this.labelView.setOpacity(0.75);
+        var valueView = this._valueView;
+        valueView.setZIndex(2);
+        valueView.setOpacity(0.75);
+        
         this.barView.setOpacity(0.5);
+        
+        var labelView = this._labelView;
+        labelView.setZIndex(2);
+        labelView.setOpacity(0.75);
+        labelView.setWidth(Math.max(valueView.width, 80));
+        
+        // Clear any existing focus
+        labelView.focus();
     },
     
     doMouseOut: function() {
-        this.labelView.setZIndex(1);
-        this.labelView.setOpacity(0);
+        var valueView = this._valueView;
+        valueView.setZIndex(1);
+        valueView.setOpacity(0);
+        
         this.barView.setOpacity(1);
+        
+        var labelView = this._labelView;
+        labelView.setZIndex(1);
+        labelView.setOpacity(0);
     }
 });

@@ -14,6 +14,7 @@
         _data:object
         _accounts:array
         _accountCols:number
+        _accountColLabels:array
 */
 af.Model = new JS.Class('Model', myt.Node, {
     // Class Methods and Attributes ////////////////////////////////////////////
@@ -34,6 +35,7 @@ af.Model = new JS.Class('Model', myt.Node, {
         this._data = {};
         this._accounts = [];
         this._accountCols = 1;
+        this._accountColLabels = [];
         
         this.openingBalance = 0;
         var startDate = this.startDate = new Date();
@@ -101,6 +103,15 @@ af.Model = new JS.Class('Model', myt.Node, {
             this._accountCols = v;
             this.saveAccounts();
         }
+    },
+    
+    setColumnLabel: function(idx, v) {
+        this._accountColLabels[idx] = v;
+        this.saveColLabels();
+    },
+    
+    getColumnLabel: function(idx) {
+        return this._accountColLabels[idx] || '';
     },
     
     
@@ -177,6 +188,8 @@ af.Model = new JS.Class('Model', myt.Node, {
             }
             
             this.setAccountCols(data.accountCols || 1);
+            
+            this._accountColLabels = data.accountColLabels || [];
         }
         
         forecaster.openingBalanceView.setValue((this.openingBalance / 100).toFixed(2));
@@ -208,7 +221,8 @@ af.Model = new JS.Class('Model', myt.Node, {
             endDate:this.endDate.getTime(),
             recurrences:recurrences,
             accounts:accountData,
-            accountCols:this._accountCols
+            accountCols:this._accountCols,
+            accountColLabels:this._accountColLabels
         });
     },
     
@@ -229,6 +243,10 @@ af.Model = new JS.Class('Model', myt.Node, {
                 this.accountList.refreshCols();
             }
         }
+    },
+    
+    saveColLabels: function() {
+        if (this.dataLoaded) this._save();
     },
     
     /** @private */

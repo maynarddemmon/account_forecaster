@@ -7,7 +7,6 @@
         None
     
     Private Attributes:
-        _ready:boolean
         _account:af.Account
         _labelView
         _colsView
@@ -38,9 +37,9 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
             x:26, y:2, width:120, height:20, roundedCorners:2, bgColor:'#ffffff',
             maxLength:128, placeholder:'Enter Account Name'
         }, [{
-            setValue: function(v) {
+            setValue: function(v, noUpdate) {
                 this.callSuper(v);
-                if (self._ready) {
+                if (!noUpdate) {
                     var account = self._account;
                     if (account) account.setLabel(this.value);
                 }
@@ -50,27 +49,18 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
         
         var colsView = self._colsView = new M.View(self, {x:150});
         new M.SpacedLayout(colsView, {spacing:1, collapseParent:true});
-        
-        self._ready = true;
     },
     
     
     // Methods /////////////////////////////////////////////////////////////////
     update: function(account, width) {
-        this._ready = false;
         this._account = account;
-        
-        this._labelView.setValue(account.label);
-        
-        this._ready = true;
-        
+        this._labelView.setValue(account.label, true);
         this.setVisible(true);
         this.setWidth(width);
     },
     
     notify: function(key, value) {
-        this._ready = false;
-        
         if (key === 'cols') {
             var colsView = this._colsView,
                 svs = colsView.getSubviews();
@@ -93,8 +83,6 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
             
             this._updateBars();
         }
-        
-        this._ready = true;
     },
     
     _updateBars: function() {
@@ -111,24 +99,21 @@ af.AccountItemView = new JS.Class('AccountItemView', myt.View, {
     
     clean: function() {
         delete this._account;
-        this._ready = false;
         this.setVisible(false);
     },
     
     _removeIt: function() {
-        if (this._ready) {
-            var account = this._account;
-            myt.global.forecaster.dimmer.showConfirm(
-                'Really remove the account item: ' + account.label + '?',
-                function(action) {
-                    switch(action) {
-                        case 'confirmBtn':
-                            account.removeIt();
-                            break;
-                    }
+        var account = this._account;
+        myt.global.forecaster.dimmer.showConfirm(
+            'Really remove the account item: ' + account.label + '?',
+            function(action) {
+                switch(action) {
+                    case 'confirmBtn':
+                        account.removeIt();
+                        break;
                 }
-            );
-        }
+            }
+        );
     }
 });
 
@@ -149,9 +134,9 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
             model = itemView._account,
             M = myt;
         
-        this.barView = new M.View(self, {width:20});
+        self.barView = new M.View(self, {width:20});
         
-        var valueView = self.valueView = new M.InputText(self, {
+        var valueView = self._valueView = new M.InputText(self, {
             x:2, y:2, width:90, height:20, roundedCorners:2, bgColor:'#ffffff',
             maxLength:16, allowedChars:'0123456789,.-$', opacity:0, zIndex:1
         }, [{
@@ -159,13 +144,11 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
                 this.callSuper(parent, attrs);
                 this.attachToDom(this, 'handleKeyDown', 'keydown');
             },
-            setValue: function(v) {
+            setValue: function(v, noUpdate) {
                 this.callSuper(v);
-                if (itemView._ready) {
-                    if (model) {
-                        model.setDatum(self.idx, v);
-                        itemView._updateBars();
-                    }
+                if (!noUpdate) {
+                    model.setDatum(self.idx, v);
+                    itemView._updateBars();
                 }
             },
             handleKeyDown: function(event) {
@@ -173,7 +156,7 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
             },
             doFocus: function() {
                 this.callSuper();
-                this.setValue(af.formatCurrency(model.getDatum(self.idx) * 100, true, true));
+                this.setValue(af.formatCurrency(model.getDatum(self.idx) * 100, true, true), true);
                 self.doMouseOver();
             },
             doBlur: function() {
@@ -191,13 +174,14 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
     
     setValue: function(v) {
         this.value = v;
-        if (!this.valueView.focused) this.valueView.setValue(v);
+        var valueView = this._valueView;
+        if (!valueView.focused) valueView.setValue(v, true);
     },
     
     
     // Methods /////////////////////////////////////////////////////////////////
     doMouseOver: function() {
-        var valueView = this.valueView;
+        var valueView = this._valueView;
         valueView.setZIndex(2);
         valueView.setOpacity(0.75);
         valueView.focus();
@@ -205,7 +189,7 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
     },
     
     doMouseOut: function() {
-        var valueView = this.valueView;
+        var valueView = this._valueView;
         valueView.setZIndex(1);
         valueView.setOpacity(0);
         this.barView.setOpacity(1);
