@@ -361,7 +361,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
     
     saveData: function(data, callback) {
         myt.LocalStorage.setItem('data', data ? data : '');
-        this.showTemporaryMessage("Data saved to your browser's local storage.");
+        this.showTemporaryMessage("Saved your data.");
         if (callback) callback(true);
     },
     
