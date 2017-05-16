@@ -299,7 +299,8 @@ af.Model = new JS.Class('Model', myt.Node, {
             key;
         
         // Add an opening balance item
-        var openingBalanceDate = startDate.setSeconds(startDate.getSeconds() - 1);
+        var openingBalanceDate = new Date(startDate);
+        openingBalanceDate.setSeconds(openingBalanceDate.getSeconds() - 1);
         items.push([null, openingBalanceDate, 'Opening Balance', this.openingBalance]);
         
         // Add items for all recurrences
