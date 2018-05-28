@@ -26,7 +26,7 @@ af = {
     DELETE_TXT:myt.FontAwesome.makeTag(['times']),
     EDIT_TXT:myt.FontAwesome.makeTag(['edit']),
     
-    ITEM_HEIGHT_ACCOUNT:72,
+    ITEM_HEIGHT_ACCOUNT:100,
     
     ITEM_HEIGHT_RECURRENCE:24,
     

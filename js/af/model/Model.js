@@ -141,17 +141,21 @@ af.Model = new JS.Class('Model', myt.Node, {
         var accounts = this._accounts, i = accounts.length,
             accountData,
             j, datum
-            colTotals = [];
+            colTotals = [],
+            colDebtTotals = [];
         while (i) {
             accountData = accounts[--i].data;
             j = accountData.length;
             while (j) {
                 datum = accountData[--j];
-                if (datum) colTotals[j] = (colTotals[j] || 0) + datum;
+                if (datum) {
+                    colTotals[j] = (colTotals[j] || 0) + datum;
+                    if (datum < 0) colDebtTotals[j] = (colDebtTotals[j] || 0) + datum;
+                }
             }
         }
         
-        this.accountList.updateTotals(colTotals);
+        this.accountList.updateTotals(colTotals, colDebtTotals);
     },
     
     // IO //

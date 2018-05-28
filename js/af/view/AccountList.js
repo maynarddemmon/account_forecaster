@@ -25,16 +25,16 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
             V = M.View,
             FA = M.FontAwesome,
             B = af.Button,
-            headerHeight = 74;
+            headerHeight = 102;
         
         var headerView = self._headerView = new V(self, {height:headerHeight, bgColor:'#dddddd'});
         var addBtn = new B(headerView, {
-            x:2, y:53, text:FA.makeTag(['plus']) + ' New Account', buttonType:'green', 
+            x:2, y:81, text:FA.makeTag(['plus']) + ' New Account', buttonType:'green', 
             width:104, tooltip:'Create a new account.'
         }, [{doActivated: function() {self.model.addAccount();}}]);
         FA.registerForNotification(addBtn.textView);
         
-        var colsView = self._colsView = new V(headerView, {x:150, y:1, height:72, bgColor:'#f8f8f8'});
+        var colsView = self._colsView = new V(headerView, {x:150, y:1, height:100, bgColor:'#f8f8f8'});
         new M.SpacedLayout(colsView, {spacing:1, collapseParent:true});
         
         var scrollView = self._scrollView = new V(self, {
@@ -117,7 +117,7 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
         if (model.dataLoaded) this._containerView.notify('cols', model._accountCols);
     },
     
-    updateTotals: function(totals) {
+    updateTotals: function(totals, debtTotals) {
         var model = this.model,
             totalLen = totals.length,
             colsView = this._colsView,
@@ -135,11 +135,12 @@ af.AccountList = new JS.Class('AccountList', myt.View, {
         for (; len > i; i++) {
             sv = svs[i];
             sv.setValue(totals[i] || 0);
+            sv.setDebt(debtTotals[i] || 0);
             sv.setIdx(i);
             sv.setLabel(model.getColumnLabel(i));
         }
         
-        var range = af.getValueRange(totals), sv;
+        var range = af.getValueRange(totals);
         i = svs.length;
         while (i) {
             sv = svs[--i];
@@ -196,6 +197,11 @@ af.ColTotalView = new JS.Class('ColTotalView', myt.View, {
             x:2, y:24, roundedCorners:2, bgColor:'#ffffff', opacity:0, zIndex:1
         });
         valueView.deStyle.padding = '3px 4px 3px 4px';
+        
+        var debtView = self._debtView = new M.Text(self, {
+            x:2, y:46, roundedCorners:2, bgColor:'#ffffff', opacity:0, zIndex:1
+        });
+        debtView.deStyle.padding = '3px 4px 3px 4px';
     },
     
     
@@ -205,6 +211,11 @@ af.ColTotalView = new JS.Class('ColTotalView', myt.View, {
     setValue: function(v) {
         this.value = v;
         this._valueView.setText('total: ' + af.formatCurrency(v * 100, true, true));
+    },
+    
+    setDebt: function(v) {
+        this.debt = v;
+        this._debtView.setText('debt: ' + af.formatCurrency(v * 100, true, true));
     },
     
     setLabel: function(v) {
@@ -227,6 +238,10 @@ af.ColTotalView = new JS.Class('ColTotalView', myt.View, {
         valueView.setZIndex(2);
         valueView.setOpacity(0.75);
         
+        var debtView = this._debtView;
+        debtView.setZIndex(2);
+        debtView.setOpacity(0.75);
+        
         this.barView.setOpacity(0.5);
         
         var labelView = this._labelView;
@@ -244,6 +259,10 @@ af.ColTotalView = new JS.Class('ColTotalView', myt.View, {
         var valueView = this._valueView;
         valueView.setZIndex(1);
         valueView.setOpacity(0);
+        
+        var debtView = this._debtView;
+        debtView.setZIndex(1);
+        debtView.setOpacity(0);
         
         this.barView.setOpacity(1);
         
