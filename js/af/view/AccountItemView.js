@@ -124,7 +124,7 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
     /** @overrides */
     initNode: function(parent, attrs) {
         attrs.bgColor = '#eeeeee';
-        attrs.width = 20;
+        attrs.width = 10;
         attrs.height = af.ITEM_HEIGHT_ACCOUNT;
         
         this.callSuper(parent, attrs);
@@ -134,7 +134,7 @@ af.AccountItemViewCol = new JS.Class('AccountItemViewCol', myt.View, {
             model = itemView._account,
             M = myt;
         
-        self.barView = new M.View(self, {width:20});
+        self.barView = new M.View(self, {width:10});
         
         var valueView = self._valueView = new M.InputText(self, {
             x:2, y:2, width:90, height:20, roundedCorners:2, bgColor:'#ffffff',
