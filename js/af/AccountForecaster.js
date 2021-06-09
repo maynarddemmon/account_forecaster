@@ -421,6 +421,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
         if (recurrenceData.year == null) recurrenceData.year = '' + now.getFullYear();
         if (recurrenceData.month == null) recurrenceData.month = '' + now.getMonth();
         if (recurrenceData.dayOfWeek == null) recurrenceData.dayOfWeek = '' + now.getDay();
+        if (recurrenceData.weekSet == null) recurrenceData.weekSet = 'a';
         if (recurrenceData.day == null) recurrenceData.day = '' + now.getDate();
         if (recurrenceData.hour == null) recurrenceData.hour = '' + now.getHours();
         if (recurrenceData.minute == null) recurrenceData.minute = '' + now.getMinutes();
@@ -481,6 +482,7 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
                         {label:'Once', value:'once'},
                         {label:'Daily', value:'daily'},
                         {label:'Weekly', value:'weekly'},
+                        {label:'Biweekly', value:'biweekly'},
                         {label:'Monthly', value:'monthly'},
                         {label:'Yearly', value:'yearly'}
                     ]
@@ -644,6 +646,27 @@ af.AccountForecaster = new JS.Class('AccountForecaster', myt.View, {
                         {label:'Friday', value:'5'},
                         {label:'Saturday', value:'6'},
                         {label:'Sunday', value:'0'}
+                    ]
+                }, [{
+                    showFocusEmbellishment: function() {
+                        this.hideDefaultFocusEmbellishment();
+                        this.setBoxShadow(M.Button.DEFAULT_FOCUS_SHADOW_PROPERTY_VALUE);
+                    },
+                    hideFocusEmbellishment: function() {
+                        this.hideDefaultFocusEmbellishment();
+                        this.setBoxShadow();
+                    }
+                }]);
+                
+                // Week set (For Biweekly)
+                var weekSetView = subform.weekSetView = new V(subform, {width:formWidth, height:rowHeight});
+                new T(weekSetView, {width:labelWidth, textAlign:'right', text:'week set'});
+                new FIS(weekSetView, {
+                    id:'weekSet', form:subform,
+                    x:inputX, width:inputWidth, y:-2,
+                    options:[
+                        {label:'A', value:'a'},
+                        {label:'B', value:'b'}
                     ]
                 }, [{
                     showFocusEmbellishment: function() {

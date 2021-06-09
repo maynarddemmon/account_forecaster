@@ -23,6 +23,7 @@ af.Model = new JS.Class('Model', myt.Node, {
             once:af.OneTimeRecurrence,
             yearly:af.YearlyRecurrence,
             monthly:af.MonthlyRecurrence,
+            biweekly:af.BiweeklyRecurrence,
             weekly:af.WeeklyRecurrence,
             daily:af.DailyRecurrence
         }
